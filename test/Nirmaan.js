@@ -8,12 +8,12 @@ describe("Nirmaan", function () {
     [owner, employer, employee] = await ethers.getSigners();
 
     const Token = await ethers.getContractFactory("MockERC20");
-    token = await Token.deploy("MockERC20", "MERC", 1000000);
-    await token.deployed();
+    token = await Token.deploy();
+    await token.waitForDeployment();
 
     Nirmaan = await ethers.getContractFactory("Nirmaan");
     nirmaan = await Nirmaan.deploy();
-    await nirmaan.deployed();
+    await nirmaan.waitForDeployment();
   });
 
   it("should allow users to register", async function () {
@@ -26,11 +26,11 @@ describe("Nirmaan", function () {
     await nirmaan.connect(employee).registerUser();
 
     await token.transfer(employer.address, 10000);
-    await token.connect(employer).approve(nirmaan.address, 10000);
+    await token.connect(employer).approve(nirmaan.target, 10000);
 
     await nirmaan.connect(employer).createContract(
       employee.address,
-      token.address,
+      token.target,
       10, // totalDays
       1000 // dailyWage
     );
