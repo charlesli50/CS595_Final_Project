@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nirmaan DApp</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <h1>Nirmaan DApp</h1>
+
+      <input placeholder="Contract Address" id="contractAddress" />
+      <button onclick="connectContract()">Connect Contract</button>
+
+      <br /><br />
+      <button onclick="register()">Register</button>
+
+      <br /><br />
+      <input placeholder="Employee Address" id="employeeAddress" />
+      <input placeholder="Token Address" id="tokenAddress" />
+      <button onclick="createWorkContract()">Create Contract</button>
+
+      <br /><br />
+      <input placeholder="Contract ID" id="contractId" />
+      <button onclick="verifyWork()">Verify Work</button>
+      <button onclick="raiseDispute()">Raise Dispute</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
