@@ -8,41 +8,99 @@ const abi = [
 ];
 
 async function connectContract() {
-  if (!window.ethereum) return alert("Please install MetaMask.");
+  try {
+    if (!window.ethereum) return alert("Please install MetaMask.");
 
-  provider = new ethers.BrowserProvider(window.ethereum);
-  signer = await provider.getSigner();
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
 
-  const address = document.getElementById("contractAddress").value;
-  contract = new ethers.Contract(address, abi, signer);
+    const address = document.getElementById("contractAddress").value.trim();
+    if (!ethers.isAddress(address)) return alert("Invalid contract address.");
 
-  alert("Contract connected!");
+    contract = new ethers.Contract(address, abi, signer);
+    console.log("✅ Connected to contract at:", contract.target);
+    alert("Contract connected!");
+  } catch (err) {
+    console.error("❌ Error connecting to contract:", err);
+    alert("Connection failed.");
+  }
 }
 
 async function register() {
-  const tx = await contract.registerUser();
-  await tx.wait();
-  alert("User registered!");
+  try {
+    console.log("🔁 Sending registerUser transaction...");
+    const tx = await contract.registerUser();
+    console.log("🧾 Transaction hash:", tx.hash);
+    const receipt = await tx.wait();
+    console.log("✅ Registered user. Gas used:", receipt.gasUsed.toString());
+    alert("User registered!");
+  } catch (err) {
+    console.error("❌ Error in registerUser:", err);
+    alert("Registration failed.");
+  }
 }
 
 async function createWorkContract() {
-  const emp = document.getElementById("employeeAddress").value;
-  const token = document.getElementById("tokenAddress").value;
-  const tx = await contract.createContract(emp, token, 5, 20); // 5 days, 20 tokens/day
-  await tx.wait();
-  alert("Work contract created.");
+  try {
+    const emp = document.getElementById("employeeAddress").value.trim();
+    const token = document.getElementById("tokenAddress").value.trim();
+    if (!ethers.isAddress(emp)) return alert("Invalid employee address.");
+    if (!ethers.isAddress(token)) return alert("Invalid token address.");
+
+    console.log("🔁 Sending createContract...");
+    const tx = await contract.createContract(emp, token, 5, 20);
+    console.log("🧾 Transaction hash:", tx.hash);
+    const receipt = await tx.wait();
+    console.log("✅ Contract created. Gas used:", receipt.gasUsed.toString());
+
+    // Try getting the contract ID (if emitted, log it)
+    const createdEvent = receipt.logs?.find(
+      (log) => log.address.toLowerCase() === contract.target.toLowerCase()
+    );
+    if (createdEvent) {
+      console.log("📦 Event log for contract creation:", createdEvent);
+    }
+
+    alert("Work contract created.");
+  } catch (err) {
+    console.error("❌ Error creating contract:", err);
+    alert("Contract creation failed.");
+  }
 }
 
 async function verifyWork() {
-  const id = document.getElementById("contractId").value;
-  const tx = await contract.verifyWork(Number(id));
-  await tx.wait();
-  alert("Work verified.");
+  try {
+    const id = Number(document.getElementById("contractId").value);
+    if (isNaN(id)) return alert("Invalid contract ID.");
+
+    console.log("🔁 Sending verifyWork for ID:", id);
+    const tx = await contract.verifyWork(id);
+    if (!tx.wait) {
+      throw new Error("Work Failed");
+    }
+    console.log("🧾 Transaction hash:", tx.hash);
+    const receipt = await tx.wait();
+    console.log("✅ Work verified. Gas used:", receipt.gasUsed.toString());
+    alert("Work verified.");
+  } catch (err) {
+    console.error("❌ Error verifying work:", err);
+    alert("Work verification failed.");
+  }
 }
 
 async function raiseDispute() {
-  const id = document.getElementById("contractId").value;
-  const tx = await contract.raiseDispute(Number(id));
-  await tx.wait();
-  alert("Dispute raised.");
+  try {
+    const id = Number(document.getElementById("contractId").value);
+    if (isNaN(id)) return alert("Invalid contract ID.");
+
+    console.log("🔁 Sending raiseDispute for ID:", id);
+    const tx = await contract.raiseDispute(id);
+    console.log("🧾 Transaction hash:", tx.hash);
+    const receipt = await tx.wait();
+    console.log("✅ Dispute raised. Gas used:", receipt.gasUsed.toString());
+    alert("Dispute raised.");
+  } catch (err) {
+    console.error("❌ Error raising dispute:", err);
+    alert("Dispute raise failed.");
+  }
 }
