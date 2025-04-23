@@ -5,6 +5,9 @@ const abi = [
   "function createContract(address employee, address token, uint256 totalDays, uint256 dailyWage) public returns (uint256)",
   "function verifyWork(uint256 id) public",
   "function raiseDispute(uint256 id) public",
+  "function isRegistered(address user) view returns (bool)",
+  "function getContract(uint256 id) view returns (address,address,address,uint256,uint256,uint256,uint8)",
+  "function totalContracts() view returns (uint256)",
 ];
 
 async function connectContract() {
@@ -102,5 +105,40 @@ async function raiseDispute() {
   } catch (err) {
     console.error("❌ Error raising dispute:", err);
     alert("Dispute raise failed.");
+  }
+}
+
+async function checkRegistered() {
+  const addr = document.getElementById("checkAddress").value.trim();
+  if (!ethers.isAddress(addr)) return alert("Invalid address.");
+  const isReg = await contract.isRegistered(addr);
+  console.log(`✅ Address ${addr} is registered:`, isReg);
+  document.getElementById("regStatus").innerText = isReg
+    ? "✅ Registered"
+    : "❌ Not registered";
+}
+
+async function listContracts() {
+  try {
+    const container = document.getElementById("contractList");
+    container.innerHTML = "Loading...";
+    const total = await contract.totalContracts();
+    console.log("📦 Total contracts on-chain:", total.toString());
+
+    const entries = [];
+
+    for (let i = 0; i < total; i++) {
+      const c = await contract.getContract(i);
+      const status = ["Active", "Completed", "Disputed"][Number(c[6])];
+      entries.push(
+        `<p><b>ID ${i}</b>: Employer ${c[0]} ➡️ Employee ${c[1]} | Token: ${c[2]} | Days: ${c[5]}/${c[3]} | Status: ${status}</p>`
+      );
+    }
+
+    container.innerHTML = entries.join("");
+  } catch (err) {
+    console.error("❌ Error fetching contracts:", err);
+    document.getElementById("contractList").innerText =
+      "Failed to load contracts.";
   }
 }

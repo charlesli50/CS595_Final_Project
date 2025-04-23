@@ -9,6 +9,16 @@
   <body>
     <div id="app">
       <h1>Nirmaan DApp</h1>
+      <br /><br />
+      <h2>Registered Info</h2>
+      <input placeholder="Check Address" id="checkAddress" />
+      <button onclick="checkRegistered()">Is Registered?</button>
+      <p id="regStatus"></p>
+
+      <br />
+      <h2>Active Contracts</h2>
+      <button onclick="listContracts()">List Contracts</button>
+      <div id="contractList"></div>
 
       <input placeholder="Contract Address" id="contractAddress" />
       <button onclick="connectContract()">Connect Contract</button>

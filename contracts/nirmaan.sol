@@ -4,11 +4,11 @@ pragma solidity ^0.8.19;
 interface IERC20 {
     function transfer(address recipient, uint256 amount) external returns (bool);
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
 }
 
 contract Nirmaan {
     address public owner;
-    
 
     enum ContractStatus { Active, Completed, Disputed }
 
@@ -19,6 +19,7 @@ contract Nirmaan {
         uint256 totalDays;
         uint256 dailyWage;
         uint256 verifiedDays;
+        uint256 totalAmountDeposited;
         ContractStatus status;
     }
 
@@ -31,6 +32,9 @@ contract Nirmaan {
     event WorkVerified(uint256 indexed id, uint256 verifiedDays);
     event PaymentReleased(uint256 indexed id, address employee, uint256 amount);
     event DisputeRaised(uint256 indexed id);
+    event RefundIssued(uint256 indexed id, address employer, uint256 amount);
+    event CollateralBalance(address token, uint256 amount);
+    event UserRegistered(address indexed user);
 
     constructor() {
         owner = msg.sender;
@@ -41,9 +45,21 @@ contract Nirmaan {
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner");
+        _;
+    }
+
     function registerUser() external {
         require(!registeredUsers[msg.sender], "Already registered");
         registeredUsers[msg.sender] = true;
+        emit UserRegistered(msg.sender);
+    }
+
+    function registerUser(address user) external onlyOwner {
+        require(!registeredUsers[user], "Already registered");
+        registeredUsers[user] = true;
+        emit UserRegistered(user);
     }
 
     function createContract(
@@ -53,14 +69,21 @@ contract Nirmaan {
         uint256 dailyWage
     ) external onlyRegistered returns (uint256) {
         require(registeredUsers[employee], "Employee must be registered");
+        require(totalDays > 0 && dailyWage > 0, "Invalid input");
+
+        uint256 totalAmount = (totalDays * dailyWage * 110) / 100;
+        IERC20 token = IERC20(tokenAddress);
+
+        require(token.transferFrom(msg.sender, address(this), totalAmount), "Initial payment failed");
 
         contracts[contractIdCounter] = WorkContract({
             employer: msg.sender,
             employee: employee,
-            token: IERC20(tokenAddress),
+            token: token,
             totalDays: totalDays,
             dailyWage: dailyWage,
             verifiedDays: 0,
+            totalAmountDeposited: totalAmount,
             status: ContractStatus.Active
         });
 
@@ -78,11 +101,20 @@ contract Nirmaan {
 
         emit WorkVerified(id, wc.verifiedDays);
 
-        // Automatic payment
-        require(wc.token.transferFrom(wc.employer, wc.employee, wc.dailyWage), "Payment failed");
+        // Direct payment from contract to employee
+        require(wc.token.transfer(wc.employee, wc.dailyWage), "Payment failed");
+        emit PaymentReleased(id, wc.employee, wc.dailyWage);
 
         if (wc.verifiedDays == wc.totalDays) {
             wc.status = ContractStatus.Completed;
+
+            // Refund the remaining 10% collateral to employer
+            uint256 usedAmount = wc.totalDays * wc.dailyWage;
+            uint256 refundAmount = wc.totalAmountDeposited - usedAmount;
+            if (refundAmount > 0) {
+                require(wc.token.transfer(wc.employer, refundAmount), "Refund failed");
+                emit RefundIssued(id, wc.employer, refundAmount);
+            }
         }
     }
 
@@ -94,4 +126,10 @@ contract Nirmaan {
 
         emit DisputeRaised(id);
     }
-}
+
+    function getContractBalance(address tokenAddress) external {
+        IERC20 token = IERC20(tokenAddress);
+        uint256 balance = token.balanceOf(address(this));
+        emit CollateralBalance(tokenAddress, balance);
+    }
+} 
