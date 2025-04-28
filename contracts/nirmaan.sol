@@ -47,17 +47,29 @@ contract Nirmaan {
         owner = msg.sender;
     }
 
+    function isRegistered(address user) public view returns (bool) {
+        return registeredUsers[user];
+    }
+
+
     function registerUser() external {
         require(!registeredUsers[msg.sender], "Already registered");
         registeredUsers[msg.sender] = true;
         emit UserRegistered(msg.sender);
     }
 
+    function totalContracts() public view returns (uint256) {
+        return contractIdCounter;
+    }
+
+
     function registerUser(address user) external onlyOwner {
         require(!registeredUsers[user], "Already registered");
         registeredUsers[user] = true;
         emit UserRegistered(user);
     }
+
+    
 
     function createContract(
         address employee,
