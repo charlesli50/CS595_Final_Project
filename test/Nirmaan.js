@@ -72,4 +72,92 @@ describe("Nirmaan", function () {
     ).to.be.revertedWith("Employee must be registered");
   });
 
+  it("should allow employer to verify work and pay employee", async function () {
+    await nirmaan.connect(employer).registerUser();
+    await nirmaan.connect(employee).registerUser();
+  
+    await token.transfer(employer.address, 110); // 100 + 10% collateral
+    await token.connect(employer).approve(nirmaan.target, 110);
+  
+    await nirmaan.connect(employer).createContract(
+      employee.address,
+      token.target,
+      10, // totalDays
+      10 // dailyWage
+    );
+  
+    const employeeInitialBalance = await token.balanceOf(employee.address);
+  
+    await expect(
+      nirmaan.connect(employer).verifyWork(0)
+    ).to.emit(nirmaan, "PaymentReleased");
+  
+    const employeeNewBalance = await token.balanceOf(employee.address);
+  
+    expect(employeeNewBalance.sub(employeeInitialBalance)).to.equal(10);
+  });
+  
+  it("should allow either party to raise a dispute", async function () {
+    await nirmaan.connect(employer).registerUser();
+    await nirmaan.connect(employee).registerUser();
+  
+    await token.transfer(employer.address, 110);
+    await token.connect(employer).approve(nirmaan.target, 110);
+  
+    await nirmaan.connect(employer).createContract(
+      employee.address,
+      token.target,
+      10,
+      10
+    );
+  
+    await expect(
+      nirmaan.connect(employee).raiseDispute(0)
+    ).to.emit(nirmaan, "DisputeRaised");
+  
+    const workContract = await nirmaan.contracts(0);
+    expect(workContract.status).to.equal(2); // Disputed
+  });
+
+  it("should not allow unauthorized users to verify work", async function () {
+    await nirmaan.connect(employer).registerUser();
+    await nirmaan.connect(employee).registerUser();
+  
+    await token.transfer(employer.address, 110);
+    await token.connect(employer).approve(nirmaan.target, 110);
+  
+    await nirmaan.connect(employer).createContract(
+      employee.address,
+      token.target,
+      10,
+      10
+    );
+  
+    await expect(
+      nirmaan.connect(employee).verifyWork(0)
+    ).to.be.revertedWith("Only employer can verify");
+  });
+  
+  it("should not allow non-owner to resolve dispute", async function () {
+    await nirmaan.connect(employer).registerUser();
+    await nirmaan.connect(employee).registerUser();
+  
+    await token.transfer(employer.address, 110);
+    await token.connect(employer).approve(nirmaan.target, 110);
+  
+    await nirmaan.connect(employer).createContract(
+      employee.address,
+      token.target,
+      10,
+      10
+    );
+  
+    await nirmaan.connect(employee).raiseDispute(0);
+  
+    await expect(
+      nirmaan.connect(employer).resolveDispute(0, employee.address)
+    ).to.be.revertedWith("Only owner");
+  });
+  
+
 });
