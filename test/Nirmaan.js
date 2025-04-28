@@ -14,6 +14,20 @@ describe("Nirmaan", function () {
     Nirmaan = await ethers.getContractFactory("Nirmaan");
     nirmaan = await Nirmaan.deploy();
     await nirmaan.waitForDeployment();
+
+      // Common setup for EVERY test:
+    await nirmaan.connect(owner).registerUser(employer.address);
+    await nirmaan.connect(owner).registerUser(employee.address);
+
+    await token.transfer(employer.address, 110);
+    await token.connect(employer).approve(nirmaan.target, 110);
+
+    await nirmaan.connect(employer).createContract(
+      employee.address,
+      token.target,
+      10, // totalDays
+      10  // dailyWage
+    );
   });
 
   it("should allow users to register", async function () {
@@ -70,6 +84,19 @@ describe("Nirmaan", function () {
         1
       )
     ).to.be.revertedWith("Employee must be registered");
+  });
+
+  //Example of automatic test setup
+  it("should allow employer to verify work and pay employee", async function () {
+    const employeeInitialBalance = await token.balanceOf(employee.address);
+  
+    await expect(
+      nirmaan.connect(employer).verifyWork(0)
+    ).to.emit(nirmaan, "PaymentReleased");
+  
+    const employeeNewBalance = await token.balanceOf(employee.address);
+  
+    expect(employeeNewBalance.sub(employeeInitialBalance)).to.equal(10);
   });
 
   it("should allow employer to verify work and pay employee", async function () {
