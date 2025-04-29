@@ -1,16 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-interface IERC20 {
-    function transfer(address recipient, uint256 amount) external returns (bool);
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-    function balanceOf(address account) external view returns (uint256);
-}
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Nirmaan {
     address public owner;
 
-    enum ContractStatus { Active, Completed, Disputed }
+    enum ContractStatus { Active, Completed, Disputed, Resolved }
 
     struct WorkContract {
         address employer;
@@ -24,7 +20,7 @@ contract Nirmaan {
     }
 
     uint256 public contractIdCounter;
-    mapping(uint256 => WorkContract) public contracts;
+    mapping(uint256 => WorkContract) public workContracts;
     mapping(address => bool) public registeredUsers;
     mapping(address => int) public reputation;
 
@@ -32,13 +28,10 @@ contract Nirmaan {
     event WorkVerified(uint256 indexed id, uint256 verifiedDays);
     event PaymentReleased(uint256 indexed id, address employee, uint256 amount);
     event DisputeRaised(uint256 indexed id);
+    event DisputeResolved(uint256 indexed id, address winner);
     event RefundIssued(uint256 indexed id, address employer, uint256 amount);
     event CollateralBalance(address token, uint256 amount);
     event UserRegistered(address indexed user);
-
-    constructor() {
-        owner = msg.sender;
-    }
 
     modifier onlyRegistered() {
         require(registeredUsers[msg.sender], "User not registered");
@@ -50,17 +43,33 @@ contract Nirmaan {
         _;
     }
 
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function isRegistered(address user) public view returns (bool) {
+        return registeredUsers[user];
+    }
+
+
     function registerUser() external {
         require(!registeredUsers[msg.sender], "Already registered");
         registeredUsers[msg.sender] = true;
         emit UserRegistered(msg.sender);
     }
 
+    function totalContracts() public view returns (uint256) {
+        return contractIdCounter;
+    }
+
+
     function registerUser(address user) external onlyOwner {
         require(!registeredUsers[user], "Already registered");
         registeredUsers[user] = true;
         emit UserRegistered(user);
     }
+
+    
 
     function createContract(
         address employee,
@@ -71,12 +80,12 @@ contract Nirmaan {
         require(registeredUsers[employee], "Employee must be registered");
         require(totalDays > 0 && dailyWage > 0, "Invalid input");
 
-        uint256 totalAmount = (totalDays * dailyWage * 110) / 100;
+        uint256 totalAmount = (totalDays * dailyWage * 110) / 100; // 10% collateral
         IERC20 token = IERC20(tokenAddress);
 
         require(token.transferFrom(msg.sender, address(this), totalAmount), "Initial payment failed");
 
-        contracts[contractIdCounter] = WorkContract({
+        workContracts[contractIdCounter] = WorkContract({
             employer: msg.sender,
             employee: employee,
             token: token,
@@ -92,7 +101,7 @@ contract Nirmaan {
     }
 
     function verifyWork(uint256 id) external onlyRegistered {
-        WorkContract storage wc = contracts[id];
+        WorkContract storage wc = workContracts[id];
         require(msg.sender == wc.employer, "Only employer can verify");
         require(wc.status == ContractStatus.Active, "Contract not active");
         require(wc.verifiedDays < wc.totalDays, "All days already verified");
@@ -111,25 +120,50 @@ contract Nirmaan {
             // Refund the remaining 10% collateral to employer
             uint256 usedAmount = wc.totalDays * wc.dailyWage;
             uint256 refundAmount = wc.totalAmountDeposited - usedAmount;
+
             if (refundAmount > 0) {
                 require(wc.token.transfer(wc.employer, refundAmount), "Refund failed");
                 emit RefundIssued(id, wc.employer, refundAmount);
             }
+
+            // Reputation boost for successful contract
+            reputation[wc.employee] += 1;
+            reputation[wc.employer] += 1;
         }
     }
 
     function raiseDispute(uint256 id) external onlyRegistered {
-        WorkContract storage wc = contracts[id];
+        WorkContract storage wc = workContracts[id];
         require(msg.sender == wc.employer || msg.sender == wc.employee, "Not a contract participant");
         require(wc.status == ContractStatus.Active, "Contract not active");
-        wc.status = ContractStatus.Disputed;
 
+        wc.status = ContractStatus.Disputed;
         emit DisputeRaised(id);
     }
 
-    function getContractBalance(address tokenAddress) external {
-        IERC20 token = IERC20(tokenAddress);
-        uint256 balance = token.balanceOf(address(this));
-        emit CollateralBalance(tokenAddress, balance);
+    function resolveDispute(uint256 id, address winner) external onlyOwner {
+        WorkContract storage wc = workContracts[id];
+        require(wc.status == ContractStatus.Disputed, "Contract not disputed");
+        require(winner == wc.employer || winner == wc.employee, "Invalid winner");
+
+        uint256 balance = wc.token.balanceOf(address(this));
+        require(wc.token.transfer(winner, balance), "Transfer failed");
+
+        wc.status = ContractStatus.Resolved;
+        emit DisputeResolved(id, winner);
+
+        // Reputation adjustment based on dispute
+        if (winner == wc.employee) {
+            reputation[wc.employee] += 2;
+            reputation[wc.employer] -= 1;
+        } else {
+            reputation[wc.employee] -= 1;
+            reputation[wc.employer] += 2;
+        }
     }
-} 
+
+    function getContractBalance(address tokenAddress) external view returns (uint256) {
+        IERC20 token = IERC20(tokenAddress);
+        return token.balanceOf(address(this));
+    }
+}

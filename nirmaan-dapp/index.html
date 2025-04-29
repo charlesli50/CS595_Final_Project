@@ -6,14 +6,24 @@
     <title>Nirmaan DApp</title>
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body>
+  <body onload="loadDeployedAddress()">
     <div id="app">
       <h1>Nirmaan DApp</h1>
       <br /><br />
+      <button onclick="connectWallet()">Connect Wallet</button>
+      <p id="walletAddress"></p>
+
+      <input placeholder="Contract Address" id="contractAddress" />
+      <button onclick="connectContract()">Connect Contract</button>
+
       <h2>Registered Info</h2>
       <input placeholder="Check Address" id="checkAddress" />
       <button onclick="checkRegistered()">Is Registered?</button>
       <p id="regStatus"></p>
+
+      <button onclick="register()">Register</button>
+
+      <br /><br />
 
       <br />
       <h2>Active Contracts</h2>
@@ -22,9 +32,6 @@
 
       <input placeholder="Contract Address" id="contractAddress" />
       <button onclick="connectContract()">Connect Contract</button>
-
-      <br /><br />
-      <button onclick="register()">Register</button>
 
       <br /><br />
       <input placeholder="Employee Address" id="employeeAddress" />

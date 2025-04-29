@@ -1,14 +1,37 @@
 let provider, signer, contract;
 
+// const abi = [
+//   "function registerUser() public",
+//   "function createContract(address employee, address token, uint256 totalDays, uint256 dailyWage) public returns (uint256)",
+//   "function verifyWork(uint256 id) public",
+//   "function raiseDispute(uint256 id) public",
+//   "function isRegistered(address user) view returns (bool)",
+//   "function getContract(uint256 id) view returns (address,address,address,uint256,uint256,uint256,uint8)",
+//   "function totalContracts() view returns (uint256)",
+// ];
+
 const abi = [
-  "function registerUser() public",
-  "function createContract(address employee, address token, uint256 totalDays, uint256 dailyWage) public returns (uint256)",
-  "function verifyWork(uint256 id) public",
-  "function raiseDispute(uint256 id) public",
+  "function registerUser() external",
+  "function createContract(address employee, address token, uint256 totalDays, uint256 dailyWage) external returns (uint256)",
+  "function verifyWork(uint256 id) external",
+  "function raiseDispute(uint256 id) external",
   "function isRegistered(address user) view returns (bool)",
   "function getContract(uint256 id) view returns (address,address,address,uint256,uint256,uint256,uint8)",
   "function totalContracts() view returns (uint256)",
 ];
+
+
+async function loadDeployedAddress() {
+  try {
+    const response = await fetch("/deployed.json"); // assumes deployed.json is served in root
+    const data = await response.json();
+    document.getElementById("contractAddress").value = data.Nirmaan;
+    console.log("✅ Loaded deployed address:", data.Nirmaan);
+  } catch (error) {
+    console.error("❌ Failed to load deployed.json", error);
+  }
+}
+
 
 async function connectContract() {
   try {
@@ -42,6 +65,35 @@ async function register() {
     alert("Registration failed.");
   }
 }
+
+let walletConnected = false;
+
+async function connectWallet() {
+  try {
+    if (!window.ethereum) {
+      alert("MetaMask is not installed!");
+      return;
+    }
+    
+    if (walletConnected) {
+      console.log("✅ Already connected.");
+      return; // Don't reconnect again if already connected
+    }
+
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    const address = await signer.getAddress();
+    
+    document.getElementById("walletAddress").innerText = `Connected: ${address}`;
+    walletConnected = true; // ✅ Mark wallet as connected
+    console.log("✅ Wallet connected:", address);
+    alert("Wallet connected!");
+  } catch (error) {
+    console.error("❌ Wallet connection error:", error);
+    alert("Wallet connection failed. Please check MetaMask.");
+  }
+}
+
 
 async function createWorkContract() {
   try {
