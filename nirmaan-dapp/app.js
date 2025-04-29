@@ -1,15 +1,5 @@
 let provider, signer, contract;
 
-// const abi = [
-//   "function registerUser() public",
-//   "function createContract(address employee, address token, uint256 totalDays, uint256 dailyWage) public returns (uint256)",
-//   "function verifyWork(uint256 id) public",
-//   "function raiseDispute(uint256 id) public",
-//   "function isRegistered(address user) view returns (bool)",
-//   "function getContract(uint256 id) view returns (address,address,address,uint256,uint256,uint256,uint8)",
-//   "function totalContracts() view returns (uint256)",
-// ];
-
 const abi = [
   "function registerUser() external",
   "function createContract(address employee, address token, uint256 totalDays, uint256 dailyWage) external returns (uint256)",
@@ -20,10 +10,9 @@ const abi = [
   "function totalContracts() view returns (uint256)",
 ];
 
-
 async function loadDeployedAddress() {
   try {
-    const response = await fetch("/deployed.json"); // assumes deployed.json is served in root
+    const response = await fetch("/deployed.json");
     const data = await response.json();
     document.getElementById("contractAddress").value = data.Nirmaan;
     console.log("✅ Loaded deployed address:", data.Nirmaan);
@@ -32,16 +21,44 @@ async function loadDeployedAddress() {
   }
 }
 
+async function connectWallet() {
+  try {
+    if (!window.ethereum) {
+      alert("MetaMask is not installed!");
+      return;
+    }
+
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+
+    const address = await signer.getAddress();
+    document.getElementById(
+      "walletAddress"
+    ).innerText = `Connected: ${address}`;
+
+    console.log("✅ Wallet connected:", address);
+    alert("Wallet connected!");
+
+    window.ethereum.on("accountsChanged", async () => {
+      console.log("🔁 Account changed. Reconnecting...");
+      await connectWallet();
+    });
+  } catch (error) {
+    console.error("❌ Wallet connection error:", error);
+    alert("Wallet connection failed. Please check MetaMask.");
+  }
+}
 
 async function connectContract() {
   try {
-    if (!window.ethereum) return alert("Please install MetaMask.");
-
-    provider = new ethers.BrowserProvider(window.ethereum);
-    signer = await provider.getSigner();
+    if (!provider) await connectWallet();
 
     const address = document.getElementById("contractAddress").value.trim();
     if (!ethers.isAddress(address)) return alert("Invalid contract address.");
+
+    const code = await provider.getCode(address);
+    if (code === "0x") return alert("No contract deployed at this address!");
 
     contract = new ethers.Contract(address, abi, signer);
     console.log("✅ Connected to contract at:", contract.target);
@@ -66,60 +83,62 @@ async function register() {
   }
 }
 
-let walletConnected = false;
-
-async function connectWallet() {
-  try {
-    if (!window.ethereum) {
-      alert("MetaMask is not installed!");
-      return;
-    }
-    
-    if (walletConnected) {
-      console.log("✅ Already connected.");
-      return; // Don't reconnect again if already connected
-    }
-
-    provider = new ethers.BrowserProvider(window.ethereum);
-    signer = await provider.getSigner();
-    const address = await signer.getAddress();
-    
-    document.getElementById("walletAddress").innerText = `Connected: ${address}`;
-    walletConnected = true; // ✅ Mark wallet as connected
-    console.log("✅ Wallet connected:", address);
-    alert("Wallet connected!");
-  } catch (error) {
-    console.error("❌ Wallet connection error:", error);
-    alert("Wallet connection failed. Please check MetaMask.");
-  }
-}
-
-
 async function createWorkContract() {
   try {
     const emp = document.getElementById("employeeAddress").value.trim();
-    const token = document.getElementById("tokenAddress").value.trim();
+    const tokenAddress = document.getElementById("tokenAddress").value.trim();
     if (!ethers.isAddress(emp)) return alert("Invalid employee address.");
-    if (!ethers.isAddress(token)) return alert("Invalid token address.");
+    if (!ethers.isAddress(tokenAddress)) return alert("Invalid token address.");
 
-    console.log("🔁 Sending createContract...");
-    const tx = await contract.createContract(emp, token, 5, 20);
-    console.log("🧾 Transaction hash:", tx.hash);
-    const receipt = await tx.wait();
-    console.log("✅ Contract created. Gas used:", receipt.gasUsed.toString());
+    const totalTokens = (5 * 20 * 110) / 100; // 110
+    const totalAmount = ethers.parseUnits(totalTokens.toString(), 18);
 
-    // Try getting the contract ID (if emitted, log it)
-    const createdEvent = receipt.logs?.find(
-      (log) => log.address.toLowerCase() === contract.target.toLowerCase()
+    const token = new ethers.Contract(
+      tokenAddress,
+      [
+        "function approve(address spender, uint256 amount) public returns (bool)",
+        "function allowance(address owner, address spender) public view returns (uint256)",
+        "function balanceOf(address account) public view returns (uint256)",
+      ],
+      signer
     );
-    if (createdEvent) {
-      console.log("📦 Event log for contract creation:", createdEvent);
+
+    const employer = await signer.getAddress();
+    const allowance = await token.allowance(employer, contract.target);
+    const balance = await token.balanceOf(employer);
+
+    console.log("👤 Employer:", employer);
+    console.log("💰 Token Balance:", ethers.formatUnits(balance, 18));
+    console.log("🔐 Token Allowance:", ethers.formatUnits(allowance, 18));
+    console.log(
+      "📦 Required Total Amount:",
+      ethers.formatUnits(totalAmount, 18)
+    );
+
+    if (balance < totalAmount) {
+      return alert("Insufficient balance. Please mint or transfer tokens.");
     }
 
-    alert("Work contract created.");
+    if (allowance < totalAmount) {
+      console.log("🔁 Approving tokens...");
+      const approveTx = await token.approve(contract.target, totalAmount);
+      await approveTx.wait();
+      console.log("✅ Approval successful!");
+    } else {
+      console.log("✅ Sufficient allowance. Skipping approve.");
+    }
+
+    console.log("🛠 Calling createContract...");
+    const tx = await contract.createContract(emp, tokenAddress, 5, 20);
+    const receipt = await tx.wait();
+    console.log(
+      "✅ Work contract created. Gas used:",
+      receipt.gasUsed.toString()
+    );
+    alert("Work contract created successfully!");
   } catch (err) {
     console.error("❌ Error creating contract:", err);
-    alert("Contract creation failed.");
+    alert("Contract creation failed. See console for details.");
   }
 }
 
@@ -130,9 +149,6 @@ async function verifyWork() {
 
     console.log("🔁 Sending verifyWork for ID:", id);
     const tx = await contract.verifyWork(id);
-    if (!tx.wait) {
-      throw new Error("Work Failed");
-    }
     console.log("🧾 Transaction hash:", tx.hash);
     const receipt = await tx.wait();
     console.log("✅ Work verified. Gas used:", receipt.gasUsed.toString());
@@ -161,13 +177,19 @@ async function raiseDispute() {
 }
 
 async function checkRegistered() {
-  const addr = document.getElementById("checkAddress").value.trim();
-  if (!ethers.isAddress(addr)) return alert("Invalid address.");
-  const isReg = await contract.isRegistered(addr);
-  console.log(`✅ Address ${addr} is registered:`, isReg);
-  document.getElementById("regStatus").innerText = isReg
-    ? "✅ Registered"
-    : "❌ Not registered";
+  try {
+    const addr = document.getElementById("checkAddress").value.trim();
+    if (!ethers.isAddress(addr)) return alert("Invalid address.");
+
+    const isReg = await contract.isRegistered(addr);
+    console.log(`✅ Address ${addr} is registered:`, isReg);
+    document.getElementById("regStatus").innerText = isReg
+      ? "✅ Registered"
+      : "❌ Not registered";
+  } catch (err) {
+    console.error("❌ Error checking registration:", err);
+    alert("Check registration failed.");
+  }
 }
 
 async function listContracts() {
@@ -175,13 +197,14 @@ async function listContracts() {
     const container = document.getElementById("contractList");
     container.innerHTML = "Loading...";
     const total = await contract.totalContracts();
-    console.log("📦 Total contracts on-chain:", total.toString());
+    console.log("📦 Total contracts:", total.toString());
 
     const entries = [];
-
     for (let i = 0; i < total; i++) {
       const c = await contract.getContract(i);
-      const status = ["Active", "Completed", "Disputed"][Number(c[6])];
+      const status = ["Active", "Completed", "Disputed", "Resolved"][
+        Number(c[6])
+      ];
       entries.push(
         `<p><b>ID ${i}</b>: Employer ${c[0]} ➡️ Employee ${c[1]} | Token: ${c[2]} | Days: ${c[5]}/${c[3]} | Status: ${status}</p>`
       );
@@ -189,7 +212,7 @@ async function listContracts() {
 
     container.innerHTML = entries.join("");
   } catch (err) {
-    console.error("❌ Error fetching contracts:", err);
+    console.error("❌ Error listing contracts:", err);
     document.getElementById("contractList").innerText =
       "Failed to load contracts.";
   }

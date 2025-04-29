@@ -47,7 +47,7 @@ contract Nirmaan {
         owner = msg.sender;
     }
 
-    function isRegistered(address user) public view returns (bool) {
+    function isRegistered(address user) external view returns (bool) {
         return registeredUsers[user];
     }
 
@@ -58,7 +58,7 @@ contract Nirmaan {
         emit UserRegistered(msg.sender);
     }
 
-    function totalContracts() public view returns (uint256) {
+    function totalContracts() external view returns (uint256) {
         return contractIdCounter;
     }
 
@@ -166,4 +166,26 @@ contract Nirmaan {
         IERC20 token = IERC20(tokenAddress);
         return token.balanceOf(address(this));
     }
+
+	function getContract(uint256 id) external view returns (
+    address employer,
+    address employee,
+    address token,
+    uint256 totalDays,
+    uint256 dailyWage,
+    uint256 verifiedDays,
+    ContractStatus status
+) {
+    WorkContract storage wc = workContracts[id];
+    return (
+        wc.employer,
+        wc.employee,
+        address(wc.token),
+        wc.totalDays,
+        wc.dailyWage,
+        wc.verifiedDays,
+        wc.status
+    );
+}
+
 }
