@@ -15,7 +15,7 @@ const abi = [
   "function createContract(address employee, address token, uint256 totalDays, uint256 dailyWage) external returns (uint256)",
   "function verifyWork(uint256 id) external",
   "function raiseDispute(uint256 id) external",
-  "function isRegistered(address user) view returns (bool)",  // 🔥 This line
+  "function isRegistered(address user) view returns (bool)",
   "function getContract(uint256 id) view returns (address,address,address,uint256,uint256,uint256,uint8)",
   "function totalContracts() view returns (uint256)",
 ];
