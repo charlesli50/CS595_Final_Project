@@ -131,13 +131,6 @@ async function createWorkContract() {
       console.log("✅ Sufficient allowance. Skipping approve.");
     }
 
-    const isRegistered = await contract.isRegistered(emp);
-    console.log("📝 Employee registered:", isRegistered);
-
-    console.log("Estimating Gas...");
-    const estimatedGas = await contract.estimateGas.createContract(emp, tokenAddress, 5, 20);
-    console.log("Estimated Gas:", estimatedGas.toString());
-
     console.log("🛠 Calling createContract...");
     const tx = await contract.createContract(emp, tokenAddress, 5, 20);
     const receipt = await tx.wait();
