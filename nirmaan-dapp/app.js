@@ -71,6 +71,9 @@ async function connectContract() {
 
 async function register() {
   try {
+
+    if (!contract) return alert("Connect to contract first.");
+
     console.log("🔁 Sending registerUser transaction...");
     const tx = await contract.registerUser();
     console.log("🧾 Transaction hash:", tx.hash);

@@ -15,7 +15,6 @@ contract Nirmaan {
         uint256 totalDays;
         uint256 dailyWage;
         uint256 verifiedDays;
-        uint256 totalAmountDeposited;
         ContractStatus status;
     }
 
@@ -80,7 +79,7 @@ contract Nirmaan {
         require(registeredUsers[employee], "Employee must be registered");
         require(totalDays > 0 && dailyWage > 0, "Invalid input");
 
-        uint256 totalAmount = (totalDays * dailyWage * 110) / 100; // 10% collateral
+        uint256 totalAmount = totalDays * dailyWage; 
         IERC20 token = IERC20(tokenAddress);
 
         require(token.transferFrom(msg.sender, address(this), totalAmount), "Initial payment failed");
@@ -92,7 +91,6 @@ contract Nirmaan {
             totalDays: totalDays,
             dailyWage: dailyWage,
             verifiedDays: 0,
-            totalAmountDeposited: totalAmount,
             status: ContractStatus.Active
         });
 
@@ -116,15 +114,6 @@ contract Nirmaan {
 
         if (wc.verifiedDays == wc.totalDays) {
             wc.status = ContractStatus.Completed;
-
-            // Refund the remaining 10% collateral to employer
-            uint256 usedAmount = wc.totalDays * wc.dailyWage;
-            uint256 refundAmount = wc.totalAmountDeposited - usedAmount;
-
-            if (refundAmount > 0) {
-                require(wc.token.transfer(wc.employer, refundAmount), "Refund failed");
-                emit RefundIssued(id, wc.employer, refundAmount);
-            }
 
             // Reputation boost for successful contract
             reputation[wc.employee] += 1;
