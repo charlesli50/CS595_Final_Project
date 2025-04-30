@@ -64,12 +64,12 @@ Open Metamask, and ensure you are on the localhost testnet(`Hardhat Localhost`).
 11. Through the DApp, select `Connect / Reconnect Wallet` to reconnect
 12. Check if Employee is registered: Use Registration section, input Employee Address, select `Check if Registered`
 13. Use this Employee Address and the MockERC20 Address to create a work Contract
-14. List All Contracts
+14. As an Employer: Pay the employee by selecting : `Employer: Verify Work`
+15. As an Employee: Contest the employer by selecting : `Employee: Raise Dispute`
 
 
 ## Environment Notes
 
 Tested on:
-- TODO
-
+- NPM 10.9.2
 
