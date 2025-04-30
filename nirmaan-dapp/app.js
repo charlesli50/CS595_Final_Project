@@ -90,10 +90,14 @@ async function createWorkContract() {
   try {
     const emp = document.getElementById("employeeAddress").value.trim();
     const tokenAddress = document.getElementById("tokenAddress").value.trim();
+    const days = document.getElementById("numDays").value.trim();
+    const dailyWage = document.getElementById("dailyWage").value.trim();
     if (!ethers.isAddress(emp)) return alert("Invalid employee address.");
     if (!ethers.isAddress(tokenAddress)) return alert("Invalid token address.");
+    if ((parseInt(days) <= 0)) return alert("Invalid number of days.");
+    if ((parseInt(dailyWage) <= 0)) return alert("Invalid wage.");
 
-    const totalTokens = (5 * 20 * 110) / 100; // 110
+    const totalTokens = days * dailyWage;
     const totalAmount = ethers.parseUnits(totalTokens.toString(), 18);
 
     const token = new ethers.Contract(
@@ -132,7 +136,7 @@ async function createWorkContract() {
     }
 
     console.log("🛠 Calling createContract...");
-    const tx = await contract.createContract(emp, tokenAddress, 5, 20);
+    const tx = await contract.createContract(emp, tokenAddress, days, dailyWage);
     const receipt = await tx.wait();
     console.log(
       "✅ Work contract created. Gas used:",

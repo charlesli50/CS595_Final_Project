@@ -80,9 +80,11 @@ contract Nirmaan {
         require(totalDays > 0 && dailyWage > 0, "Invalid input");
 
         uint256 totalAmount = totalDays * dailyWage; 
+        uint256 decimals = 18;
+        uint256 scaledAmount = totalAmount * (10 ** decimals);
         IERC20 token = IERC20(tokenAddress);
 
-        require(token.transferFrom(msg.sender, address(this), totalAmount), "Initial payment failed");
+        require(token.transferFrom(msg.sender, address(this), scaledAmount), "Initial payment failed");
 
         workContracts[contractIdCounter] = WorkContract({
             employer: msg.sender,
@@ -108,9 +110,11 @@ contract Nirmaan {
 
         emit WorkVerified(id, wc.verifiedDays);
 
+        uint256 scaledDailyWage = wc.dailyWage * (10 ** 18);
+
         // Direct payment from contract to employee
-        require(wc.token.transfer(wc.employee, wc.dailyWage), "Payment failed");
-        emit PaymentReleased(id, wc.employee, wc.dailyWage);
+        require(wc.token.transfer(wc.employee, scaledDailyWage), "Payment failed");
+        emit PaymentReleased(id, wc.employee, scaledDailyWage);
 
         if (wc.verifiedDays == wc.totalDays) {
             wc.status = ContractStatus.Completed;
