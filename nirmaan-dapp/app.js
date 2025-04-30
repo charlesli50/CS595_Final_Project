@@ -135,9 +135,12 @@ async function createWorkContract() {
       "✅ Work contract created. Gas used:",
       receipt.gasUsed.toString()
     );
-    alert("Work contract created successfully!");
+    
+    document.getElementById("currentContractStatus").innerText = "✅ Contract Created!";
+
   } catch (err) {
     console.error("❌ Error creating contract:", err);
+    document.getElementById("currentContractStatus").innerText = "❌ Contract Creation Failed!";
     alert("Contract creation failed. See console for details.");
   }
 }

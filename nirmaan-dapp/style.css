@@ -1,74 +1,154 @@
+/* Reset and base styles */
 body {
-  font-family: "Arial", sans-serif;
-  background-color: #f4f4f9;
-  color: #333;
-  padding: 2rem;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: #f7fafd;
+  color: #23272f;
   margin: 0;
-  line-height: 1.6;
+  padding: 0;
 }
 
-h1,
-h2 {
-  color: #2c3e50;
+header {
   text-align: center;
+  margin-bottom: 2rem;
 }
 
-input {
-  padding: 0.75rem;
-  margin: 0.5rem 0;
-  width: 100%;
-  max-width: 400px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-  font-size: 1rem;
+h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #2d3a4b;
+  margin: 1.5rem 0 0.5rem 0;
 }
 
-button {
-  padding: 0.75rem 1.5rem;
-  margin: 0.5rem 0;
-  background-color: #3498db;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #2980b9;
+h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #3b4c5c;
+  margin: 0 0 1rem 0;
+  letter-spacing: 0.5px;
 }
 
 #app {
-  max-width: 800px;
-  margin: 0 auto;
-  background: #fff;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 540px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
-#contractList,
-#regStatus {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: #ecf0f1;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+/* Card container */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(44, 62, 80, 0.08);
+  padding: 2rem 1.5rem;
+  margin-bottom: 2rem;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 20px rgba(44, 62, 80, 0.13);
+}
+
+/* Input and button row */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="number"] {
+  flex: 1 1 180px;
+  padding: 0.7rem 1rem;
+  border: 1.5px solid #e0e6ed;
+  border-radius: 7px;
+  background: #f4f7fb;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border: 1.5px solid #3498db;
+  outline: none;
+  background: #fff;
 }
 
 input::placeholder {
-  color: #aaa;
+  color: #b0b6be;
+  opacity: 1;
 }
 
-@media (max-width: 600px) {
-  body {
-    padding: 1rem;
-  }
+/* Buttons */
+button {
+  padding: 0.7rem 1.4rem;
+  background: #3498db;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 1px 4px rgba(52, 152, 219, 0.08);
+}
 
-  input,
-  button {
-    width: 100%;
+button:hover,
+button:focus {
+  background: #217dbb;
+}
+
+button.secondary {
+  background: #e67e22;
+}
+
+button.secondary:hover,
+button.secondary:focus {
+  background: #c76b14;
+}
+
+/* Status and info boxes */
+.status-box {
+  margin-top: 0.7rem;
+  padding: 0.8rem 1rem;
+  background: #f1faf7;
+  border: 1px solid #c8e6d8;
+  color: #1b7b4f;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.status-text {
+  margin-left: 1rem;
+  font-size: 1rem;
+  color: #6b778c;
+}
+
+#contractList {
+  margin-top: 1.2rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 7px;
+  border: 1px solid #e0e6ed;
+  font-size: 0.97rem;
+  color: #23272f;
+  min-height: 40px;
+  word-break: break-all;
+}
+
+/* Responsive design */
+@media (max-width: 700px) {
+  #app {
+    max-width: 98vw;
+    padding: 0;
+  }
+  .card {
+    padding: 1.3rem 0.7rem;
+  }
+  .row {
+    flex-direction: column;
+    gap: 0.7rem;
   }
 }

@@ -1,96 +1,69 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nirmaan DApp</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body onload="loadDeployedAddress()">
-    <div id="app">
-      <h1>Nirmaan DApp</h1>
-      <br /><br />
-      <button onclick="connectWallet()">Connect Wallet</button>
-      <p id="walletAddress"></p>
-
-      <input placeholder="Contract Address" id="contractAddress" />
-      <button onclick="connectContract()">Connect Contract</button>
-
-      <h2>Registered Info</h2>
-      <input placeholder="Check Address" id="checkAddress" />
-      <button onclick="checkRegistered()">Is Registered?</button>
-      <p id="regStatus"></p>
-
-      <button onclick="register()">Register</button>
-
-      <br /><br />
-
-      <br />
-      <h2>Active Contracts</h2>
-      <button onclick="listContracts()">List Contracts</button>
-      <div id="contractList"></div>
-
-      <input placeholder="Contract Address" id="contractAddress" />
-      <button onclick="connectContract()">Connect Contract</button>
-
-      <br /><br />
-      <input placeholder="Employee Address" id="employeeAddress" />
-      <input placeholder="Token Address" id="tokenAddress" />
-      <button onclick="createWorkContract()">Create Contract</button>
-
-      <br /><br />
-      <input placeholder="Contract ID" id="contractId" />
-      <button onclick="verifyWork()">Verify Work</button>
-      <button onclick="raiseDispute()">Raise Dispute</button>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
-    <script src="app.js"></script>
-  </body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nirmaan DApp</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body onload="loadDeployedAddress()">
-    <div id="app">
+<head>
+  <meta charset="UTF-8">
+  <title>Nirmaan DApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body onload="loadDeployedAddress()">
+  <div id="app">
+    <header>
       <h1>Nirmaan DApp</h1>
+    </header>
 
+    <section class="card">
       <h2>🔗 Wallet Connection</h2>
-      <button onclick="connectWallet()">Connect / Reconnect Wallet</button>
-      <p id="walletAddress">Not connected</p>
+      <div class="row">
+        <button id="connectWalletBtn" onclick="connectWallet()">Connect / Reconnect Wallet</button>
+        <span id="walletAddress" class="status-text">Not connected</span>
+      </div>
+    </section>
 
-      <h2>🛠 Contract Connection</h2>
-      <input placeholder="Contract Address" id="contractAddress" />
-      <button onclick="connectContract()">Connect to Contract</button>
+    <section class="card">
+      <h2>🛠 Contract Connection/Register Account</h2>
+      <div class="row">
+        <input id="contractAddress" type="text" placeholder="Contract Address">
+        <button  id="connectContractBtn" onclick="connectContract()">Connect to Contract</button>
+        <button id="registerBtn" onclick="register()">Register Current Wallet</button>
+      </div>
+    </section>
 
-      <h2>👥 Registration</h2>
-      <button onclick="register()">Register Current Wallet</button>
-      <input placeholder="Check Address" id="checkAddress" />
-      <button onclick="checkRegistered()">Check if Registered</button>
-      <p id="regStatus"></p>
+    <section class="card">
+      <h2>👥 Check Registration</h2>
+      <div class="row">
+        <input id="checkAddress" type="text" placeholder="Wallet Address to Check">
+        <button id="checkRegisteredBtn" onclick="checkRegistered()">Check if Registered</button>
+      </div>
+      <div id="regStatus" class="status-box"></div>
+    </section>
 
+    <section class="card">
       <h2>🏗 Employer Actions</h2>
-      <input placeholder="Employee Address" id="employeeAddress" />
-      <input placeholder="Token Address" id="tokenAddress" />
-      <button onclick="createWorkContract()">Create Work Contract</button>
+      <div class="row">
+        <input id="employeeAddress" type="text" placeholder="Employee Address">
+        <input id="tokenAddress" type="text" placeholder="Token Address">
+        <button id="createContractBtn" onclick="createWorkContract()">Create Work Contract</button>
+      </div>
+      <div id="currentContractStatus" class="status-box"></div>
+    </section>
 
+    <section class="card">
       <h2>🔨 Work Management</h2>
-      <input placeholder="Contract ID" id="contractId" />
-      <button onclick="verifyWork()">Employer: Verify Work</button>
-      <button onclick="raiseDispute()">Employee: Raise Dispute</button>
+      <div class="row">
+        <input id="contractId" type="number" placeholder="Contract ID">
+        <button id="verifyWorkBtn" onclick="verifyWork()">Employer: Verify Work</button>
+        <button id="raiseDisputeBtn" class="secondary" onclick="raiseDispute()">Employee: Raise Dispute</button>
+      </div>
+    </section>
 
+    <section class="card">
       <h2>📃 Active Contracts</h2>
-      <button onclick="listContracts()">List All Contracts</button>
+      <button id="listContractsBtn" onclick="listContracts()">List All Contracts</button>
       <div id="contractList"></div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
-    <script src="app.js"></script>
-  </body>
+    </section>
+  </div>
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
+</body>
 </html>
