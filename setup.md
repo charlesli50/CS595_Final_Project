@@ -32,13 +32,8 @@ Register the Employer
 
 Register the Employee
 
-<<<<<<< Updated upstream
 7. Through MetaMask: Log into Account #1 (Or any another account) using the provided private key from the Hardhat Node launch
 8. Through the DApp, select ```Connect / Reconnect Wallet``` to connect through this second account and then click connect to contract via the Nirmaan contract address
-=======
-7. Through MetaMask: Log into Account #1(Or any another account) using the provided private key from the Hardhat Node launch
-8. Through the DApp, select ```Connect / Reconnect Wallet``` to connect through this second account
->>>>>>> Stashed changes
 9. Select: Register the current Address
 
 -- 
