@@ -71,6 +71,9 @@ async function connectContract() {
 
 async function register() {
   try {
+
+    if (!contract) return alert("Connect to contract first.");
+
     console.log("🔁 Sending registerUser transaction...");
     const tx = await contract.registerUser();
     console.log("🧾 Transaction hash:", tx.hash);
@@ -127,6 +130,13 @@ async function createWorkContract() {
     } else {
       console.log("✅ Sufficient allowance. Skipping approve.");
     }
+
+    const isRegistered = await contract.isRegistered(emp);
+    console.log("📝 Employee registered:", isRegistered);
+
+    console.log("Estimating Gas...");
+    const estimatedGas = await contract.estimateGas.createContract(emp, tokenAddress, 5, 20);
+    console.log("Estimated Gas:", estimatedGas.toString());
 
     console.log("🛠 Calling createContract...");
     const tx = await contract.createContract(emp, tokenAddress, 5, 20);

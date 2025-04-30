@@ -7,7 +7,7 @@ async function main() {
   console.log("Deploying contracts with the account:", deployer.address);
 
   const balance = await deployer.provider.getBalance(deployer.address);
-  console.log("Account balance:", formatEther(balance), "ETH"); // ✅ Use formatEther directly
+  console.log("Account balance:", formatEther(balance), "ETH"); 
 
   // Deploy MockERC20
   const MockERC20 = await ethers.getContractFactory("MockERC20");
