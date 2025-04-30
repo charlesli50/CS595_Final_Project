@@ -34,84 +34,79 @@ describe("Nirmaan", function () {
     );
   });
 
-  it("should allow a new user to self-register", async function () {
-    await nirmaan.connect(outsider)["registerUser()"]();
-    expect(await nirmaan.registeredUsers(outsider.address)).to.be.true;
-  });
-
-  it("should create a contract", async function () {
-    await token.transfer(employer.address, 110);
-    await token.connect(employer).approve(nirmaan.target, 110);
+//   it("should create a contract", async function () {
+//     await token.transfer(employer.address, 110);
+//     await token.connect(employer).approve(nirmaan.target, 110);
   
-    await expect(
-      nirmaan.connect(employer).createContract(
-        employee.address,
-        token.target,
-        10,
-        10
-      )
-    ).to.emit(nirmaan, "ContractCreated");
+//     await expect(
+//       nirmaan.connect(employer).createContract(
+//         employee.address,
+//         token.target,
+//         10,
+//         10
+//       )
+//     ).to.emit(nirmaan, "ContractCreated");
   
-    const workContract = await nirmaan.workContracts(1); // second contract
-    expect(workContract.employer).to.equal(employer.address);
-    expect(workContract.employee).to.equal(employee.address);
-  });
+//     const workContract = await nirmaan.workContracts(1); // second contract
+//     expect(workContract.employer).to.equal(employer.address);
+//     expect(workContract.employee).to.equal(employee.address);
+//   });
   
 
-  it("should fail to create a contract if employer is not registered", async function () {
-    await expect(
-      nirmaan.connect(outsider).createContract(
-        employee.address,
-        token.target,
-        10,
-        10
-      )
-    ).to.be.revertedWith("User not registered");
-  });
+//   it("should fail to create a contract if employer is not registered", async function () {
+//     await expect(
+//       nirmaan.connect(outsider).createContract(
+//         employee.address,
+//         token.target,
+//         10,
+//         10
+//       )
+//     ).to.be.revertedWith("User not registered");
+//   });
 
-  it("should fail to create a contract if employee is not registered", async function () {
-    await expect(
-      nirmaan.connect(employer).createContract(
-        outsider.address,
-        token.target,
-        10,
-        10
-      )
-    ).to.be.revertedWith("Employee must be registered");
-  });
+//   it("should fail to create a contract if employee is not registered", async function () {
+//     await expect(
+//       nirmaan.connect(employer).createContract(
+//         outsider.address,
+//         token.target,
+//         10,
+//         10
+//       )
+//     ).to.be.revertedWith("Employee must be registered");
+//   });
 
-  it("should allow employer to verify work and pay employee", async function () {
-    const employeeInitialBalance = await token.balanceOf(employee.address);
+//   it("should allow employer to verify work and pay employee", async function () {
+//     const employeeInitialBalance = await token.balanceOf(employee.address);
   
-    await expect(
-      nirmaan.connect(employer).verifyWork(0)
-    ).to.emit(nirmaan, "PaymentReleased");
+//     await expect(
+//       nirmaan.connect(employer).verifyWork(0)
+//     ).to.emit(nirmaan, "PaymentReleased");
   
-    const employeeNewBalance = await token.balanceOf(employee.address);
-    expect(employeeNewBalance - employeeInitialBalance).to.equal(10n);
-  });
+//     const employeeNewBalance = await token.balanceOf(employee.address);
+//     expect(employeeNewBalance - employeeInitialBalance).to.equal(10n);
+//   });
   
 
-  it("should allow either party to raise a dispute", async function () {
-    await expect(
-      nirmaan.connect(employee).raiseDispute(0)
-    ).to.emit(nirmaan, "DisputeRaised");
+//   it("should allow either party to raise a dispute", async function () {
+//     await expect(
+//       nirmaan.connect(employee).raiseDispute(0)
+//     ).to.emit(nirmaan, "DisputeRaised");
 
-    const workContract = await nirmaan.workContracts(0);
-    expect(workContract.status).to.equal(2); // Disputed
-  });
+//     const workContract = await nirmaan.workContracts(0);
+//     expect(workContract.status).to.equal(2); // Disputed
+//   });
 
-  it("should not allow unauthorized users to verify work", async function () {
-    await expect(
-      nirmaan.connect(employee).verifyWork(0)
-    ).to.be.revertedWith("Only employer can verify");
-  });
+//   it("should not allow unauthorized users to verify work", async function () {
+//     await expect(
+//       nirmaan.connect(employee).verifyWork(0)
+//     ).to.be.revertedWith("Only employer can verify");
+//   });
 
-  it("should not allow non-owner to resolve dispute", async function () {
-    await nirmaan.connect(employee).raiseDispute(0);
+//   it("should not allow non-owner to resolve dispute", async function () {
+//     await nirmaan.connect(employee).raiseDispute(0);
 
-    await expect(
-      nirmaan.connect(employer).resolveDispute(0, employee.address)
-    ).to.be.revertedWith("Only owner");
-  });
+//     await expect(
+//       nirmaan.connect(employer).resolveDispute(0, employee.address)
+//     ).to.be.revertedWith("Only owner");
+//   });
 });

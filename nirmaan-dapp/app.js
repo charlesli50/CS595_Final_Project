@@ -38,7 +38,7 @@ async function connectWallet() {
     ).innerText = `Connected: ${address}`;
 
     console.log("✅ Wallet connected:", address);
-    alert("Wallet connected!");
+    // alert("Wallet connected!");
 
     window.ethereum.on("accountsChanged", async () => {
       console.log("🔁 Account changed. Reconnecting...");
